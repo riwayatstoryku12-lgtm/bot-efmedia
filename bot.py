@@ -1,4 +1,5 @@
 import sqlite3, requests, hashlib, time, asyncio, json, os
+DB_PATH = "/tmp/DB_PATH"
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -18,7 +19,7 @@ HARGA = {
 }
 
 def init_db():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("dDB_PATH")
     c = conn.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS transaksi (order_id TEXT PRIMARY KEY, user_id INTEGER, paket TEXT, jumlah INTEGER, total INTEGER, status TEXT, created_at INTEGER)")
     conn.commit()
@@ -130,7 +131,7 @@ async def bayar_qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if 'qrUrl' in result and result['qrUrl']:
         caption = f"✅ *SILAHKAN SCAN QRIS DI BAWAH*\n\nPaket: {PRODUK[paket]}\nJumlah: {jumlah}\nTotal Bayar: *Rp{total:,}*\nOrder ID: `{order_id}`\n\n⚠️ Mode SANDBOX"
         await query.message.reply_photo(photo=result['qrUrl'], caption=caption, parse_mode="Markdown")
-        conn = sqlite3.connect("database.db"); c = conn.cursor()
+        conn = sqlite3.connect("DB_PATH"); c = conn.cursor()
         c.execute("INSERT INTO transaksi VALUES (?,?,?,?,?,?,?)", (order_id, user_id, paket, jumlah, total, "PENDING", int(time.time())))
         conn.commit(); conn.close()
     else:
